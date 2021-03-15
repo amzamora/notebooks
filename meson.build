@@ -11,6 +11,7 @@ asresources = gnome.compile_resources(
 exe = executable (meson.project_name(),
 	'src/Application.vala',
 	'src/MainWindow.vala',
+	'src/widgets/Editor.vala',
 	'src/services/Settings.vala',
 	asresources,
 	dependencies : [

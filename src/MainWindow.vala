@@ -30,15 +30,11 @@ public class MainWindow : Gtk.Window {
         this.set_titlebar(headerbar);
 
         // Main
-        var textbuffer = new Gtk.TextBuffer(null);
-        var textview = new Gtk.TextView.with_buffer(textbuffer);
-        textview.editable = false;
-        textview.cursor_visible = false;
-        textview.wrap_mode = Gtk.WrapMode.WORD;
-        
+        var editor = new Editor();
+
         var scrolled_window = new Gtk.ScrolledWindow(null, null);
         scrolled_window.expand = true;
-        scrolled_window.add(textview);
+        scrolled_window.add(editor);
 
         this.add(scrolled_window);
 
@@ -55,10 +51,9 @@ public class MainWindow : Gtk.Window {
            file_chooser.destroy ();
 
            if (response == Gtk.ResponseType.ACCEPT) {
-               stdout.printf(file_chooser.get_filename ());
                string contents;
                GLib.FileUtils.get_contents (file_chooser.get_filename (), out contents);
-               textbuffer.set_text(contents, -1);
+               editor.set_markdown(contents);
            }
         });
     }

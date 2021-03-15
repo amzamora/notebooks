@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/com/github/amzamora/notebooks">
+		<file alias="custom.css" compressed="true">custom.css</file>
+	</gresource>
+</gresources>

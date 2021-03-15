@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Notebooks
+Comment=A notes app.
+Categories=Utility;Office;
+Exec=com.github.amzamora.notebooks
+Icon=application-default-icon
+Keywords=notes;
+Terminal=false
+Type=Application

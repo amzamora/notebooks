@@ -18,7 +18,48 @@
 */
 
 public class MainWindow : Gtk.Window {
-	public MainWindow () {
-		
-	}
+    public MainWindow () {
+        // Headerbar
+        var headerbar = new Gtk.HeaderBar();
+        headerbar.title = "Notebooks";
+        headerbar.set_decoration_layout("close:maximize");
+        headerbar.show_close_button = true;
+
+        var button = new Gtk.Button.from_icon_name("document-open", Gtk.IconSize.LARGE_TOOLBAR);
+        headerbar.pack_end(button);
+        this.set_titlebar(headerbar);
+
+        // Main
+        var textbuffer = new Gtk.TextBuffer(null);
+        var textview = new Gtk.TextView.with_buffer(textbuffer);
+        textview.editable = false;
+        textview.cursor_visible = false;
+        textview.wrap_mode = Gtk.WrapMode.WORD;
+        
+        var scrolled_window = new Gtk.ScrolledWindow(null, null);
+        scrolled_window.expand = true;
+        scrolled_window.add(textview);
+
+        this.add(scrolled_window);
+
+        // Actions
+        button.clicked.connect (() => {
+            var file_chooser = new Gtk.FileChooserNative (
+               "Open some files",
+               this,
+               Gtk.FileChooserAction.OPEN,
+               "Open",
+               "Cancel"
+           );
+           var response = file_chooser.run ();
+           file_chooser.destroy ();
+
+           if (response == Gtk.ResponseType.ACCEPT) {
+               stdout.printf(file_chooser.get_filename ());
+               string contents;
+               GLib.FileUtils.get_contents (file_chooser.get_filename (), out contents);
+               textbuffer.set_text(contents, -1);
+           }
+        });
+    }
 }

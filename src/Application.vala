@@ -18,8 +18,6 @@
 */
 
 public class Notebooks : Gtk.Application {
-    Settings settings;
-
     public Notebooks () {
         Object (
             application_id: "com.github.amzamora.notebooks",
@@ -28,8 +26,6 @@ public class Notebooks : Gtk.Application {
     }
 
     protected override void activate () {
-        settings = Settings.get_default ();
-
         // Start app and restore
         var main_window = new MainWindow ();
         restore (main_window);
@@ -51,29 +47,29 @@ public class Notebooks : Gtk.Application {
 
     public void restore (MainWindow window) {
         // Restore position
-        var pos_x = settings.pos_x;
-        var pos_y = settings.pos_y;
+        var pos_x = Settings.get_instance().pos_x;
+        var pos_y = Settings.get_instance().pos_y;
 
         if (pos_x != -1 || pos_y != -1) {
             window.move (pos_x, pos_y);
         }
 
         // Restore size
-        window.resize (settings.window_width, settings.window_height);
+        window.resize (Settings.get_instance().window_width, Settings.get_instance().window_height);
     }
 
     public void save (MainWindow window) {
         // Save position
         int x, y;
         window.get_position (out x, out y);
-        settings.pos_x = x;
-        settings.pos_y = y;
+        Settings.get_instance().pos_x = x;
+        Settings.get_instance().pos_y = y;
 
         // Save size
         int width, height;
         window.get_size (out width, out height);
-        settings.window_width = width;
-        settings.window_height = height;
+        Settings.get_instance().window_width = width;
+        Settings.get_instance().window_height = height;
 
         // Save las note selected
         //window.save_current_note ();

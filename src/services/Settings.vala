@@ -6,7 +6,7 @@ class Settings : Granite.Services.Settings {
 	public int last_note_selected { get; set; }
 
 	private static Settings? instance;
-	public static unowned Settings get_default () {
+	public static unowned Settings get_instance () {
 		if (instance == null) {
 			instance = new Settings ();
 		}

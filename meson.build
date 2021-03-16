@@ -12,6 +12,7 @@ exe = executable (meson.project_name(),
 	'src/Application.vala',
 	'src/MainWindow.vala',
 	'src/widgets/Editor.vala',
+	'src/widgets/Image.vala',
 	'src/services/Settings.vala',
 	asresources,
 	dependencies : [

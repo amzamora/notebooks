@@ -19,6 +19,7 @@
 
 public class Editor : Gtk.Box {
     public Editor () {
+        this.get_style_context ().add_class ("editor");
         this.orientation = Gtk.Orientation.VERTICAL;
         this.spacing = 10;
         this.add (new Gtk.Label ("Paragraph 1"));
@@ -34,7 +35,9 @@ public class Editor : Gtk.Box {
         int pos = 0;
         while (pos < markdown.length) {
             var elem = this.get_next_element(markdown, ref pos);
-            this.add (elem);
+            if (elem != null) {
+                this.add (elem);
+            }
         }
 
         // Show
@@ -51,6 +54,9 @@ public class Editor : Gtk.Box {
     private Gtk.Widget get_next_element(string markdown, ref int pos) {
         if (this.is_header(markdown, pos)) {
             return this.get_header(markdown, ref pos);
+        }
+        else if (this.is_image(markdown, pos)) {
+            return this.get_image(markdown, ref pos);
         }
         else {
             return this.get_paragraph(markdown, ref pos);
@@ -91,9 +97,10 @@ public class Editor : Gtk.Box {
     private Gtk.Widget get_header(string markdown, ref int pos) {
         // Determine type of header
         int i = 0;
-        while (markdown[i] == '#') {
+        while (markdown[pos + i] == '#') {
             i += 1;
         }
+        pos += i + 1;
 
         // Get header content
         var content = new StringBuilder();
@@ -120,6 +127,33 @@ public class Editor : Gtk.Box {
         return header;
     }
 
+    private Gtk.Widget get_image(string markdown, ref int pos) {
+        // Get uri
+        pos += 2; // Eat ![
+        while (markdown[pos] != ']' && pos < markdown.length) {
+            pos += 1;
+        }
+        pos += 1; // Eat ]
+        pos += 1; // Eat (
+        var uri = new StringBuilder();
+        while (markdown[pos] != ')' && pos < markdown.length) {
+            uri.append_c(markdown[pos]);
+            pos += 1;
+        }
+        pos += 1; // Eat )
+
+        // Move until next element
+        while (markdown[pos] == '\n') {
+            pos += 1;
+        }
+
+        // Make image
+        var image = new Image(uri.str);
+        image.get_style_context ().add_class ("image");
+
+        return image;
+    }
+
     private bool is_new_element(string markdown, int pos) {
         if (markdown[pos + 1] == '\n') {
             return true;
@@ -136,12 +170,21 @@ public class Editor : Gtk.Box {
                 i += 1;
             }
 
-            if (i != 0 && markdown[i] == ' ' && i <= 4) {
+            if (i != 0 && markdown[pos + i] == ' ' && i <= 4) {
                 return true;
             }
             else {
                 return false;
             }
+        }
+        else {
+            return false;
+        }
+    }
+
+    private bool is_image(string markdown, int pos) {
+        if (markdown[pos] == '!' && markdown[pos + 1] == '[') {
+            return true;
         }
         else {
             return false;

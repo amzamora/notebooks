@@ -1,0 +1,38 @@
+/* Block elements */
+.h1,
+.h2,
+.h3,
+.paragraph,
+.blockquote {
+	display: block;
+	white-space: pre-wrap;
+	margin-bottom: 0.4em;
+}
+
+.h1 {
+	font-weight: bold;
+	font-size: x-large;
+}
+
+.h2 {
+	font-weight: bold;
+	font-size: large;
+}
+
+.h3 {
+	font-weight: bold;
+}
+
+.blockquote {
+	padding: 10px;
+	border-left: 2px solid grey;
+}
+
+/* Inline elements */
+.notation {
+	color: gray;
+}
+
+bold {
+	font-weight: bold;
+}

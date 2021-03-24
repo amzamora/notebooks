@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<script src="src/js/parser.js"></script>
+		<script src="src/js/editor.js"></script>
+		<link rel="stylesheet" type="text/css" href="src/css/style.css" media="screen"/>
+		<link rel="stylesheet" type="text/css" href="src/css/elements.css" media="screen"/>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			html, body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+
+			#editor {
+				padding-left: 15px;
+				width: 100%;
+				height: 100%;
+				font-family: 'Inter var', sans-serif;
+			}
+		</style>
+	</head>
+	<body>
+		<pre id="editor"></pre>
+		<script>
+			let editor = new NotebooksEditor('editor');
+			editor.setText("# Hello editor!\nThis is a pragraph! And also is very very very very very very very very\n- very very\n- very long!\n\n- Yeah!\n- Yep\n- And yes");
+			//editor.setText("# Header 1\nHello, world!");
+		</script>
+	</body>
+</html>

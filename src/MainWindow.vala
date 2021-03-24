@@ -53,7 +53,7 @@ public class MainWindow : Gtk.Window {
            if (response == Gtk.ResponseType.ACCEPT) {
                string contents;
                GLib.FileUtils.get_contents (file_chooser.get_filename (), out contents);
-               editor.set_markdown(contents);
+               editor.set_text(contents);
            }
         });
     }

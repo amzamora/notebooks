@@ -8,6 +8,14 @@ asresources = gnome.compile_resources(
 	c_name: 'as'
 )
 
+# Update html for editor in src/widgets/Editor.vala
+python = import('python').find_installation('python3')
+bundle_editor = custom_target('bundle editor',
+	output : 'fake',
+	command : [python, join_paths(meson.source_root(), 'install/scripts/bundle_editor.py')],
+	build_by_default : true
+)
+
 exe = executable (meson.project_name(),
 	'src/Application.vala',
 	'src/MainWindow.vala',
@@ -23,6 +31,6 @@ exe = executable (meson.project_name(),
 	install : true
 )
 
-meson.add_install_script('install/meson/post_install.py')
+meson.add_install_script('install/scripts/post_install.py')
 
 subdir ('install/data')

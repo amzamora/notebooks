@@ -24,6 +24,7 @@ public class Editor : Gtk.Box {
         this.spacing = 10;
         this.add (new Gtk.Label ("Paragraph 1"));
         this.add (new Gtk.Label ("Paragraph 2"));
+        this.add (new Image("/home/alonso/Imágenes/ilustraciones pulentas/tumblr_onuqrtM8RM1u77u56o1_500.gif"));
         this.add (new Gtk.Label ("Paragraph 3"));
     }
 

@@ -17,60 +17,116 @@
 * Boston, MA 02110-1301 USA
 */
 
-public class Image : Gtk.Grid {
-    private Gdk.PixbufAnimation animated_image;
-    private Gdk.PixbufAnimationIter iter;
-    private Gtk.DrawingArea drawing_area;
+public class Image : WebKit.WebView {
+    private int width = 0;
+    private int height = 0;
 
-    public Image(string file) {
-        this.animated_image = new Gdk.PixbufAnimation.from_file(file);
-        TimeVal time = TimeVal();
-        time.get_current_time();
-        this.iter = this.animated_image.get_iter(time);
+    private const int IMAGE_LOADER_BUFFER_SIZE = 8192;
+    private bool image_size_loaded = false;
 
-        this.drawing_area = new Gtk.DrawingArea();
-        this.drawing_area.hexpand = true;
-        this.drawing_area.vexpand = true;
-        this.drawing_area.draw.connect (draw_image);
+    public Image(string path) {
+        this.halign = Gtk.Align.CENTER;
 
-        this.attach(drawing_area, 0, 0, 1, 1);
-        this.vexpand = false;
-        this.height_request = this.iter.get_pixbuf().height;
+        // Set image uri and html
+        var before = """
+            <!doctype html>
+            <html>
+            <head>
+            <meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+            <style>
+                html,
+                body {
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                }
+
+                img {
+                    display: block;
+                    /* width: 100%; */
+                }
+            </style>
+            </head>
+            <body>
+        """;
+        var middle = @"<img async src=\"$path\" referrerpolicy=\"no-referrer\">";
+        var after = """
+            </body>
+            </html>
+        """;
+        this.load_html(before + middle + after, "file:///");
+
+        // Get image resolution
+        this.load_resolution.begin(path);
     }
 
-    private bool draw_image(Cairo.Context cr) {
-        var image = this.iter.get_pixbuf();
-        var width = this.drawing_area.get_allocated_width();
-        var height = (int) (width * (((double) image.height) / image.width));
-        this.height_request = height;
-        var x = 0;
-        var y = 0;
-        var temp_image = image.scale_simple(width, height, Gdk.InterpType.BILINEAR);
-        this.draw_rounded_path(cr, x, y, width, height, 5);
-        Gdk.cairo_set_source_pixbuf(cr, temp_image, x, y);
-        cr.clip();
-        cr.paint();
+    // from: https://github.com/elementary/files/blob/615b76d9ba8414f5c108057e1c7cdd70e243c130/src/View/Widgets/OverlayBar.vala
+    private async void load_resolution (string path) {
+        var file = File.new_for_path(path);
 
-        Timeout.add(this.iter.get_delay_time(), () => {
-            TimeVal time = TimeVal();
-            time.get_current_time();
-            this.iter.advance(time);
-            this.drawing_area.queue_draw_area(x, y, width, height);
-            return false;
-        });
+        try {
+            Cancellable? cancellable = null;
+            var stream = yield file.read_async (0, cancellable);
+            if (stream == null) {
+                error ("Could not read image file's size data");
+            }
+            var loader = new Gdk.PixbufLoader.with_mime_type(file.query_info ("*", 0).get_content_type ().to_string ());
+            loader.size_prepared.connect ((width, height) => {
+                this.image_size_loaded = true;
+                this.height_request = height;
+                this.width_request = width;
+            });
 
-        return false;
+            cancellable.cancel ();
+            cancellable = new Cancellable ();
+
+            yield read_image_stream (loader, stream, cancellable);
+
+            // Gdk wants us to always close the loader, so we are nice to it
+            try {
+                stream.close ();
+            } catch (GLib.Error e) {
+                debug ("Error closing stream in load resolution: %s", e.message);
+            }
+            try {
+                loader.close ();
+            } catch (GLib.Error e) { /* Errors expected because may not load whole image */
+                debug ("Error closing loader in load resolution: %s", e.message);
+            }
+
+        } catch (Error e) {
+            warning ("Error loading image resolution in OverlayBar: %s", e.message);
+        }
     }
 
-    // From: https://stackoverflow.com/a/4231963
-    private void draw_rounded_path(Cairo.Context ctx, double x, double y, double width, double height, double radius) {
-        double degrees = 3.14 / 180.0;
+    private async void read_image_stream (Gdk.PixbufLoader loader, FileInputStream stream, Cancellable cancellable) {
+        uint8 [] buffer = new uint8[IMAGE_LOADER_BUFFER_SIZE];
+        ssize_t read = 1;
+        uint count = 0;
+        while (!image_size_loaded && read > 0 && !cancellable.is_cancelled ()) {
+            try {
+                read = yield stream.read_async (buffer, 0, cancellable);
+                count++;
+                if (count > 100) {
+                    this.width = -1;
+                    this.height = -1;
+                    break;
+                }
 
-        ctx.new_sub_path();
-        ctx.arc(x + width - radius, y + radius, radius, -90 * degrees, 0 * degrees);
-        ctx.arc(x + width - radius, y + height - radius, radius, 0 * degrees, 90 * degrees);
-        ctx.arc(x + radius, y + height - radius, radius, 90 * degrees, 180 * degrees);
-        ctx.arc(x + radius, y + radius, radius, 180 * degrees, 270 * degrees);
-        ctx.close_path();
+                loader.write (buffer);
+
+            } catch (IOError e) {
+                if (!(e is IOError.CANCELLED)) {
+                    warning (e.message);
+                }
+            } catch (Gdk.PixbufError e) {
+                /* errors while loading are expected, we only need to know the size */
+            } catch (FileError e) {
+                warning (e.message);
+            } catch (Error e) {
+                warning (e.message);
+            }
+        }
     }
 }
